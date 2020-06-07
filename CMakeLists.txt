@@ -69,10 +69,12 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   ackermann_msgs#   sensor_msgs#   std_msgs
-# )
+generate_messages(
+  DEPENDENCIES
+  ackermann_msgs
+  sensor_msgs
+  std_msgs
+)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -104,9 +106,9 @@ find_package(catkin REQUIRED COMPONENTS
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES msde_fgm
-#  CATKIN_DEPENDS ackermann_msgs roscpp sensor_msgs std_msgs
+  INCLUDE_DIRS include
+  LIBRARIES msde_fgm
+  CATKIN_DEPENDS ackermann_msgs roscpp sensor_msgs std_msgs
 #  DEPENDS system_lib
 )
 
@@ -117,9 +119,15 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-# include
+  include
   ${catkin_INCLUDE_DIRS}
 )
+
+add_executable(fgm_node src/msde_fgm_node.cpp
+                        src/msde_fgm.cpp)
+target_link_libraries(fgm_node ${catkin_LIBRARIES}
+)
+add_dependencies(fgm_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
