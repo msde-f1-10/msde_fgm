@@ -5,9 +5,17 @@
 #include "nav_msgs/Odometry.h"
 #include "sensor_msgs/LaserScan.h"
 
+#include <iostream>
+#include <vector>
 #include <string.h>
 
 namespace fgm{
+
+
+    double scan_angle_min;
+    double scan_angle_max;
+    double scan_angle_increment;
+    int scan_range_size;
 
 
     FGM::FGM(const ros::NodeHandle h)
@@ -26,6 +34,8 @@ namespace fgm{
         nh_c.getParam("/msde_driving/drive/filter_size", filter_size);
         nh_c.getParam("/msde_driving/drive/filter_scale", filter_scale);
 
+
+        sub_init_scan = nh_c.subscribe(scan_topic_name, 1, &FGM::sub_initLidarData, this);
         // subscriber and publisher init
         sub_scan = nh_c.subscribe(scan_topic_name, 10, &FGM::subCallback_scan, this);
         sub_odom = nh_c.subscribe(odom_topic_name, 10, &FGM::subCallback_odom, this);
@@ -53,6 +63,7 @@ namespace fgm{
     void FGM::start_driving()
     {
         ROS_INFO("start driving");
+
         while(ros::ok())
         {
             ros::spinOnce();
@@ -60,21 +71,29 @@ namespace fgm{
             pub_ack_msg.header.stamp = ros::Time::now();
             pub_ack_msg.header.frame_id = "base_link";
 
+            ROS_INFO("angle min: %f, angle max: %f", scan_angle_min, scan_angle_max);
+            ROS_INFO("increment : %f", scan_angle_increment);
+            ROS_INFO("size of rnages : %d", scan_range_size);
 
 
             loop_rate.sleep();
         }
     }
 
+    /* get the laser scan data description */
+    void FGM::sub_initLidarData(const sensor_msgs::LaserScan::ConstPtr& msg_sub)
+    {
+        ROS_INFO("GET THE LIDAR DESCRIPTION");
+        scan_angle_min = msg_sub -> angle_min;
+        scan_angle_max = msg_sub -> angle_max;
+        scan_angle_increment = msg_sub -> angle_increment;
+        scan_range_size = msg_sub -> ranges.size();
+
+        sub_init_scan.shutdown();
+    }
+
     void FGM::subCallback_scan(const sensor_msgs::LaserScan::ConstPtr& msg_sub)
     {
-        double angle_min, angle_max, angle_increment;
-        angle_min = msg_sub -> angle_min;
-        angle_max = msg_sub -> angle_max;
-        angle_increment = msg_sub -> angle_increment;
-
-        ROS_INFO("angle min: %f, angle max: %f", angle_min, angle_max);
-        ROS_INFO("increment : %f", angle_increment);
 
     }
 

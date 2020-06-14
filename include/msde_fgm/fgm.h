@@ -12,6 +12,12 @@
 
 namespace fgm
 {
+
+    extern double scan_angle_min;
+    extern double scan_angle_max;
+    extern double scan_angle_increment;
+    extern int scan_range_size;
+
     class FGM{
     private:
         ros::NodeHandle nh_c;
@@ -19,6 +25,7 @@ namespace fgm
         ros::Subscriber sub_odom;
         ros::Subscriber sub_scan;
         ros::Publisher pub_ack;
+        ros::Subscriber sub_init_scan;
 
         // parameter for topics
         std::string scan_topic_name;
@@ -41,6 +48,7 @@ namespace fgm
         void start_driving();
         void subCallback_scan(const sensor_msgs::LaserScan::ConstPtr& msg_sub);
         void subCallback_odom(const nav_msgs::Odometry::ConstPtr& msg_sub);
+        void sub_initLidarData(const sensor_msgs::LaserScan::ConstPtr& msg_sub);
 
 
 
