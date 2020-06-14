@@ -3,6 +3,9 @@
 
 #include "nav_msgs/Odometry.h"
 
+#define PI 3.141592
+
+
 namespace util{
 
     typedef struct _Point_xy{

@@ -5,6 +5,7 @@
 #include "ackermann_msgs/AckermannDriveStamped.h"
 #include "nav_msgs/Odometry.h"
 #include "sensor_msgs/LaserScan.h"
+#include "sensor_msgs/MultiEchoLaserScan.h"
 
 #include "msde_fgm/util.h"
 
@@ -13,9 +14,9 @@
 namespace fgm
 {
 
-    extern double scan_angle_min;
-    extern double scan_angle_max;
-    extern double scan_angle_increment;
+    extern float scan_angle_min;
+    extern float scan_angle_max;
+    extern float scan_angle_increment;
     extern int scan_range_size;
 
     class FGM{
@@ -33,14 +34,23 @@ namespace fgm
         std::string drive_topic_name;
 
         // parameter for driving
-        double robot_scale;
-        double threshold;
-        double filter_size;
-        double filter_scale;
+        float robot_scale;
+        float threshold;
+        float filter_size;
+        float filter_scale;
+
+
+        // Lidar data
+        float * scan_origin;
+        float * scan_filtered;
 
         // messages
         ackermann_msgs::AckermannDriveStamped pub_ack_msg;
         sensor_msgs::LaserScan scan_data;
+        // message temp
+        //sensor_msgs::MultiEchoLaserScan scan_filter_test;
+        sensor_msgs::LaserScan scan_filter_test;
+        ros::Publisher pub_scan_filtered;
 
     public:
         FGM(const ros::NodeHandle h);
