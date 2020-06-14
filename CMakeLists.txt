@@ -123,8 +123,8 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-add_executable(fgm_node src/msde_fgm_node.cpp
-                        src/msde_fgm.cpp)
+add_executable(fgm_node src/fgm_node.cpp
+                        src/fgm.cpp)
 target_link_libraries(fgm_node ${catkin_LIBRARIES}
 )
 add_dependencies(fgm_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
