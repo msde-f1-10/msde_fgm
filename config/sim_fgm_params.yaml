@@ -8,7 +8,9 @@ topic:
 
 # configuration values for driving algorithm
 driving:
-  robot_scale: 0.15
-  threshold: 2.0
-  filter_size: 5.0
+  speed_max: 4
+  speed_min: 1
+  robot_scale: 0.2
+  threshold: 5.0
+  gap_size: 2
   filter_scale: 1.8
