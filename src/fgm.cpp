@@ -33,7 +33,7 @@ namespace fgm{
         ROS_INFO("start fgm node");
 
         // get reference point
-        nh_c.getParam("/sde_driving/reference_point/filepath", path_temp);
+        nh_c.getParam("/msde_driving/reference_point/filepath", path_temp);
         filepath = new char[ path_temp.length()+1 ];
         strcpy(filepath, path_temp.c_str());
         get_reference_point();
@@ -59,7 +59,7 @@ namespace fgm{
         pub_ack = nh_c.advertise<ackermann_msgs::AckermannDriveStamped>(drive_topic_name, 5);
 
         // test publisher
-        pub_scan_filtered = nh_c.advertise<sensor_msgs::LaserScan>("filtered_scan", 1);
+        pub_scan_filtered = nh_c.advertise<sensor_msgs::LaserScan>("laserscan_gap", 1);
 
 
         // Ackermann Driving message init
@@ -80,14 +80,32 @@ namespace fgm{
         delete []scan_origin;
         delete []scan_filtered;
         delete []filepath;
+        delete []rf_points;
     }
 
     void FGM::get_reference_point()
     {
+        ROS_INFO("get reference point");
+        rf_num = 0;
+
+        fs.open(filepath, std::ios::in);
+        ROS_INFO("file opened");
+        while(!fs.eof())
+        {
+            getline(fs, str_buf, ',');
+            getline(fs, str_buf);
+            rf_num++;
+        }
+        fs.close();
+        ROS_INFO("%d points", rf_num);
+
+        rf_points = new util_msde::Point_xy[rf_num];
+
         fs.open(filepath, std::ios::in);
         ROS_INFO("open file");
         util_msde::Point_xy point_temp;
 
+        int i=0;
         while(!fs.eof())
         {
             getline(fs, str_buf, ',');
@@ -95,9 +113,11 @@ namespace fgm{
             getline(fs, str_buf);
             point_temp.y = std::strtof(str_buf.c_str(), 0);
             point_temp.theta = 0;
-            rf_points.push_back(point_temp);
+            rf_points[i] = point_temp;
+            i++;
         }
         fs.close();
+        ROS_INFO("close file");
     }
     
 
@@ -117,7 +137,8 @@ namespace fgm{
             //find gap
             gap_obj.gap_finding(scan_filtered);
             gap_obj.for_gap_finding(scan_filtered);
-            gap_obj.print_gapinfo();
+//            gap_obj.print_gapinfo();
+            ROS_INFO("current position: (%f, %f)", current_position.x, current_position.y);
 
             //test
             Gap goal_gap = gap_obj.get_maximum_gap();
@@ -290,7 +311,6 @@ namespace fgm{
     void FGM::subCallback_odom(const nav_msgs::Odometry::ConstPtr& msg_sub)
     {
         this->current_position = util_msde::quanternion2xyt(msg_sub);
-        ROS_INFO("current position: (%f, %f)", current_position.x, current_position.y);
     }
 
 

@@ -78,7 +78,8 @@ namespace fgm
         std::string str_buf;
         std::string path_temp;
         char* filepath;
-        std::vector<util_msde::Point_xy> rf_points;
+        util_msde::Point_xy* rf_points;
+        int rf_num;
         // position of robot
         util_msde::Point_xy current_position;
 
