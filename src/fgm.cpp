@@ -28,12 +28,13 @@ namespace fgm{
 
 
     FGM::FGM(const ros::NodeHandle h)
-    :nh_c(h), loop_rate(200)
+    :nh_c(h), loop_rate(200), current_rp_idx(0)
     {
         ROS_INFO("start fgm node");
 
         // get reference point
         nh_c.getParam("/msde_driving/reference_point/filepath", path_temp);
+        nh_c.getParam("/msde_driving/reference_point/distance", rf_distance);
         filepath = new char[ path_temp.length()+1 ];
         strcpy(filepath, path_temp.c_str());
         get_reference_point();
@@ -118,7 +119,45 @@ namespace fgm{
         }
         fs.close();
         ROS_INFO("close file");
-    }
+    } // end get reference point
+
+    void FGM::find_desired_rp()
+    {
+        double temp_distance;
+        int current_rp_idx_temp = current_rp_idx;
+
+        nearest_distance = util_msde::getDistance(rf_points[current_rp_idx_temp], current_position);
+                        
+        while(1)
+        {
+            current_rp_idx_temp++;
+
+            if(current_rp_idx_temp >= rf_num) current_rp_idx_temp = 0;
+
+            temp_distance = util_msde::getDistance(rf_points[current_rp_idx_temp], current_position);
+
+            if(temp_distance < nearest_distance)
+            {
+                nearest_distance = temp_distance;
+                current_rp_idx = current_rp_idx_temp;
+            }
+            else if(temp_distance > (nearest_distance + rf_distance*1.2) || (current_rp_idx_temp == current_rp_idx)){ break; } 
+        }
+
+        temp_distance = 0;
+        int idx_temp = current_rp_idx;
+        while(1)
+        {
+            if(idx_temp >= rf_num) idx_temp = 0;
+            temp_distance = util_msde::getDistance(rf_points[idx_temp], current_position);
+            if(temp_distance > rf_distance) break;
+            idx_temp++;
+        }
+        reference_point = rf_points[idx_temp];
+        util_msde::Point_xy rfpoint_tf;
+        rfpoint_tf = transformPoint(current_position, reference_point);
+        ref_point_rt = util_msde::xyt2rt(rfpoint_tf);
+    } // end finding reference point
     
 
     void FGM::start_driving()
@@ -140,8 +179,11 @@ namespace fgm{
 //            gap_obj.print_gapinfo();
             ROS_INFO("current position: (%f, %f)", current_position.x, current_position.y);
 
+            ROS_INFO("reference point: (%f, %f)", ref_point_rt.r, ref_point_rt.theta);
+
             //test
-            Gap goal_gap = gap_obj.get_maximum_gap();
+            Gap goal_gap = gap_obj.get_nearest_gap(ref_point_rt);
+//            Gap goal_gap = gap_obj.get_maximum_gap();
             drive_test(goal_gap);
 
             std::cout<<std::endl;
@@ -164,7 +206,7 @@ namespace fgm{
         
 
 
-        pub_ack_msg.drive.steering_angle = 0.1*mid_angle + 0.9*angle;
+        pub_ack_msg.drive.steering_angle = 0.9*ref_point_rt.theta + 0.1*angle;
         pub_ack_msg.drive.steering_angle_velocity = 0;
         pub_ack_msg.drive.speed = speed_min;
         pub_ack_msg.drive.acceleration = 0;
@@ -311,6 +353,7 @@ namespace fgm{
     void FGM::subCallback_odom(const nav_msgs::Odometry::ConstPtr& msg_sub)
     {
         this->current_position = util_msde::quanternion2xyt(msg_sub);
+        find_desired_rp();
     }
 
 
@@ -449,6 +492,65 @@ namespace fgm{
         }
 
     }// end get maximum gpa method
+
+
+    // get nearest gap from reference point
+    Gap GAP::get_nearest_gap(util_msde::Point_rt ref)
+    {
+        int num = this->gaps.size();
+        if( num == 0 ){
+            return this->for_gap;
+        }
+        else{
+            int i;
+            int ref_idx;
+            int step = (int)(ref.theta/scan_angle_increment);
+            ref_idx = range_mid_idx + step;
+
+            int gap_idx = 0;
+            int distance;
+            
+            if(gaps[0].start_idx > ref_idx){
+                distance = gaps[0].start_idx - ref_idx;
+            } else if(gaps[0].end_idx < ref_idx) {
+                distance = ref_idx - gaps[0].end_idx;
+            } else {
+                distance = 0;
+                gap_idx = 0;
+            }
+
+            i = 1;
+            int temp_distance;
+            while(i < num)
+            {
+                if(gaps[i].start_idx > ref_idx){
+                    temp_distance = gaps[i].start_idx - ref_idx;
+                    if(temp_distance < distance)
+                    {
+                        distance = temp_distance;
+                        gap_idx = i;
+                    }
+                } else if(gaps[i].end_idx < ref_idx) {
+                    temp_distance = ref_idx - gaps[i].end_idx;
+                    if(temp_distance < distance)
+                    {
+                        distance = temp_distance;
+                        gap_idx = i;
+                    }
+                } else {
+                    temp_distance = 0;
+                    distance = 0;
+                    gap_idx = i;
+                    break;
+                }
+                i++;
+            }
+            return this->gaps[gap_idx];
+        }
+    }// end get nearest gap
+
+
+
 
     void GAP::print_gapinfo()
     {

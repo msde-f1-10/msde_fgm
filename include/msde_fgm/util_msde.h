@@ -27,7 +27,8 @@ namespace util_msde{
     Point_rt quanternion2rt(const nav_msgs::Odometry::ConstPtr& odom_data);
     Point_rt xyt2rt(Point_xy original_point);
 //    Point_xy rt2xyt(double r, double t);
-
+    Point_xy transformPoint(Point_xy robot_pos, Point_xy target);
+    double getDistance(Point_xy A, Point_xy B);
 
 
 }

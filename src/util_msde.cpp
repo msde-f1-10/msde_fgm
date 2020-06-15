@@ -52,10 +52,37 @@ namespace util_msde{
         y = original_point.y;
 
         rtPoint.r = sqrt(x*x + y*y);
-        rtPoint.theta = atan2(y, x);
+        rtPoint.theta = atan2(y, x) - (PI/2);
 
         return rtPoint;
         
     }
+    
+    Point_xy transformPoint(Point_xy robot_pos, Point_xy target)
+    {
+        Point_xy tf_point;
+        double dx, dy, theta, dtheta;
+        
+        theta = PI/2 - robot_pos.theta;
+
+        dx = target.x - robot_pos.x;
+        dy = target.y - robot_pos.y;
+        dtheta = target.theta + theta;
+
+        tf_point.x = dx * cos(theta) - dy * sin(theta);
+        tf_point.y = dx * sin(theta) + dy * cos(theta);
+        tf_point.theta = dtheta;
+
+        return tf_point;
+    }
+
+    double getDistance(Point_xy A, Point_xy B)
+    {
+        double dx, dy;
+        dx = A.x - B.x;
+        dy = A.y - B.y;
+        return sqrt( pow(dx,2) + pow(dy,2));
+    }
+
 
 }

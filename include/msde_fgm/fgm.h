@@ -79,9 +79,14 @@ namespace fgm
         std::string path_temp;
         char* filepath;
         util_msde::Point_xy* rf_points;
+        util_msde::Point_xy reference_point;
+        util_msde::Point_rt ref_point_rt;
         int rf_num;
+        double rf_distance;
+        double nearest_distance;
         // position of robot
         util_msde::Point_xy current_position;
+        int current_rp_idx;
 
 
     public:
@@ -89,7 +94,10 @@ namespace fgm
         ~FGM();
         void start_driving();
         void drive_test(Gap goal);
+        // reference points control
         void get_reference_point();
+        void find_desired_rp();
+        // sub callback
         void subCallback_scan(const sensor_msgs::LaserScan::ConstPtr& msg_sub);
         void subCallback_odom(const nav_msgs::Odometry::ConstPtr& msg_sub);
         void sub_initLidarData(const sensor_msgs::LaserScan::ConstPtr& msg_sub);
@@ -110,6 +118,7 @@ namespace fgm
         int get_gapsize();
         Gap get_for_gap();
         Gap get_maximum_gap();
+        Gap get_nearest_gap(util_msde::Point_rt ref);
     };
 
 }
