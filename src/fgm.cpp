@@ -1,6 +1,6 @@
 #include "msde_fgm/fgm.h"
 
-#include "msde_fgm/util.h"
+#include "msde_fgm/util_msde.h"
 
 #include "ros/ros.h"
 #include "ackermann_msgs/AckermannDriveStamped.h"
@@ -31,6 +31,12 @@ namespace fgm{
     :nh_c(h), loop_rate(200)
     {
         ROS_INFO("start fgm node");
+
+        // get reference point
+        nh_c.getParam("/sde_driving/reference_point/filepath", path_temp);
+        filepath = new char[ path_temp.length()+1 ];
+        strcpy(filepath, path_temp.c_str());
+        get_reference_point();
 
         // get parameters for name of topics
         nh_c.getParam("/msde_driving/topic/scan", scan_topic_name);
@@ -73,6 +79,25 @@ namespace fgm{
     {
         delete []scan_origin;
         delete []scan_filtered;
+        delete []filepath;
+    }
+
+    void FGM::get_reference_point()
+    {
+        fs.open(filepath, std::ios::in);
+        ROS_INFO("open file");
+        util_msde::Point_xy point_temp;
+
+        while(!fs.eof())
+        {
+            getline(fs, str_buf, ',');
+            point_temp.x = std::strtof(str_buf.c_str(), 0);
+            getline(fs, str_buf);
+            point_temp.y = std::strtof(str_buf.c_str(), 0);
+            point_temp.theta = 0;
+            rf_points.push_back(point_temp);
+        }
+        fs.close();
     }
     
 
@@ -109,7 +134,7 @@ namespace fgm{
     {
         float steering_angle;
         float angle = (goal.max_idx - range_mid_idx)*scan_angle_increment;
-        float mid_angle = (goal.start_idx + goal.end_idx)/2;
+        float mid_angle = ((goal.start_idx + goal.end_idx)/2 - range_mid_idx)*scan_angle_increment;
         float speed = speed_max;
 
         float distance = 1;
@@ -118,7 +143,7 @@ namespace fgm{
         
 
 
-        pub_ack_msg.drive.steering_angle = mid_angle;
+        pub_ack_msg.drive.steering_angle = 0.1*mid_angle + 0.9*angle;
         pub_ack_msg.drive.steering_angle_velocity = 0;
         pub_ack_msg.drive.speed = speed_min;
         pub_ack_msg.drive.acceleration = 0;
@@ -236,6 +261,19 @@ namespace fgm{
 
         } // scan filter end
 
+        /*
+        float start_ = range_mid_idx - (PI/2)/scan_angle_increment;
+        float end_ = range_mid_idx + (PI/2)/scan_angle_increment;
+        for(i=0; i<start_; i++)
+        {
+            scan_filtered[i] = 0;
+        }
+        for(i=end_; i<scan_range_size; i++)
+        {
+            scan_filtered[i] = 0;
+        }
+        */
+
         // publish filtered scan data
         scan_filter_test.header = msg_sub -> header;
         scan_filter_test.angle_min = scan_angle_min;
@@ -251,6 +289,8 @@ namespace fgm{
 
     void FGM::subCallback_odom(const nav_msgs::Odometry::ConstPtr& msg_sub)
     {
+        this->current_position = util_msde::quanternion2xyt(msg_sub);
+        ROS_INFO("current position: (%f, %f)", current_position.x, current_position.y);
     }
 
 

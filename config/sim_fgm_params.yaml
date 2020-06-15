@@ -1,3 +1,6 @@
+# reference points
+reference_point:
+  filepath: /home/pilyang/wps/logs/rp_skirk.csv
 
 # name of topic to subscribe and publish
 topic:
@@ -8,9 +11,9 @@ topic:
 
 # configuration values for driving algorithm
 driving:
-  speed_max: 4
+  speed_max: 3
   speed_min: 1
   robot_scale: 0.2
-  threshold: 5.0
+  threshold: 4.0
   gap_size: 2
-  filter_scale: 1.8
+  filter_scale: 1.1

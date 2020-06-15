@@ -1,12 +1,12 @@
-#include "msde_fgm/util.h"
+#include "msde_fgm/util_msde.h"
 
 #include "nav_msgs/Odometry.h"
 
 #include <cmath>
 
-namespace util{
+namespace util_msde{
 
-    Point_xy quanternion2xyt(nav_msgs::Odometry::ConstPtr& odom_data)
+    Point_xy quanternion2xyt(const nav_msgs::Odometry::ConstPtr& odom_data)
     {
         Point_xy xyPoint;
         double qx, qy, qz, qw;
@@ -17,7 +17,7 @@ namespace util{
         qz = odom_data -> pose.pose.orientation.z;
         qw = odom_data -> pose.pose.orientation.w;
 
-        sinc_cosp = 2.0 * (qw*qz + qx*qy);
+        siny_cosp = 2.0 * (qw*qz + qx*qy);
         cosy_cosp = 1.0 - 2.0 * (qy*qy + qz*qz);
 
         xyPoint.x = odom_data -> pose.pose.position.x;
@@ -28,7 +28,7 @@ namespace util{
     }
 
 
-    Point_xy quanternion2rt(nav_msgs::Odometry::ConstPtr& odom_data)
+    Point_rt quanternion2rt(const nav_msgs::Odometry::ConstPtr& odom_data)
     {
         Point_rt rtPoint;
         double x, y;
