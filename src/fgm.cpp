@@ -51,6 +51,7 @@ namespace fgm{
         nh_c.getParam("/msde_driving/driving/filter_scale", filter_scale);
         nh_c.getParam("/msde_driving/driving/speed_max", speed_max);
         nh_c.getParam("/msde_driving/driving/speed_min", speed_min);
+        speed_coef = (4*(speed_max-speed_min))/(pow(PI,2));
 
         // get parameter for theta selection gain values
         nh_c.getParam("/msde_driving/driving/gap_theta_gain", gap_theta_gain);
@@ -66,6 +67,7 @@ namespace fgm{
 
         // test publisher
         pub_scan_filtered = nh_c.advertise<sensor_msgs::LaserScan>("laserscan_gap", 1);
+        pub_dp_mark = nh_c.advertise<visualization_msgs::Marker>("/desired_point/marker", 0);
 
 
         // Ackermann Driving message init
@@ -160,6 +162,31 @@ namespace fgm{
         util_msde::Point_xy rfpoint_tf;
         rfpoint_tf = transformPoint(current_position, reference_point);
         ref_point_rt = util_msde::xyt2rt(rfpoint_tf);
+
+        Dp_Marker.header.frame_id = "map";
+        Dp_Marker.header.stamp = ros::Time();
+        Dp_Marker.ns = "msde_fgm";
+        Dp_Marker.id = 1;
+        Dp_Marker.type = visualization_msgs::Marker::SPHERE;
+        Dp_Marker.action = visualization_msgs::Marker::ADD;
+        Dp_Marker.pose.position.x = reference_point.x;
+        Dp_Marker.pose.position.y = reference_point.y;
+        Dp_Marker.pose.position.z = 0.1;
+        Dp_Marker.pose.orientation.x = 0.0;
+        Dp_Marker.pose.orientation.y = 0.0;
+        Dp_Marker.pose.orientation.z = 0.0;
+        Dp_Marker.pose.orientation.w = 1.0;
+        Dp_Marker.scale.x = 0.1;
+        Dp_Marker.scale.y = 0.1;
+        Dp_Marker.scale.z = 0.1;
+        Dp_Marker.color.a = 1.0; // Don't forget to set the alpha!
+        Dp_Marker.color.r = 1.0;
+        Dp_Marker.color.g = 0.0;
+        Dp_Marker.color.b = 0.0;
+        //only if using a MESH_RESOURCE marker type:
+        pub_dp_mark.publish( Dp_Marker );
+
+
     } // end finding reference point
     
 
@@ -180,15 +207,15 @@ namespace fgm{
             gap_obj.gap_finding(scan_filtered);
             gap_obj.for_gap_finding(scan_filtered);
 //            gap_obj.print_gapinfo();
-            ROS_INFO("current position: (%f, %f)", current_position.x, current_position.y);
+//            ROS_INFO("current position: (%f, %f)", current_position.x, current_position.y);
 
-            ROS_INFO("reference point: (%f, %f)", ref_point_rt.r, ref_point_rt.theta);
+//            ROS_INFO("reference point: (%f, %f)", ref_point_rt.r, ref_point_rt.theta);
 
             //test
             Gap goal_gap = gap_obj.get_nearest_gap(ref_point_rt);
 //            Gap goal_gap = gap_obj.get_maximum_gap();
 //            drive_test(goal_gap);
-            drive_with_ref(goa_gap);
+            drive_with_ref(goal_gap);
 
             std::cout<<std::endl;
             //std::system("clear");
@@ -206,8 +233,8 @@ namespace fgm{
         // get range data in ref_direction
         int step = (int)(ref_angle/scan_angle_increment);
         int ref_idx = range_mid_idx + step;
-        // 5degree range selection
-        int range = (int)((PI/36)/scan_angle_increment);
+        // 10degree range selection
+        int range = (int)((PI/18)/scan_angle_increment);
         int st_idx, en_idx;
         if( (ref_idx + range/2) < 0 )
         {
@@ -226,17 +253,62 @@ namespace fgm{
         }
         else if( (ref_idx + range/2) >= scan_range_size )
         {
-            st_idx = (int)(ref_id - range/2);
+            st_idx = (int)(ref_idx - range/2);
             en_idx = scan_range_size - 1;
         }
         else
         {
-            st_idx = (int)(ref_id - range/2);
+            st_idx = (int)(ref_idx - range/2);
             en_idx = (int)(ref_idx + range/2);
         }
 
+        float range_sum=0;
+        float dmin=0;
+        int i;
+        for(i=st_idx; i<=en_idx; i++)
+        {
+            range_sum += scan_filtered[i];
+        }
+        dmin = range_sum / (en_idx-st_idx+1);
+
+        float controlled_angle = ( (gap_theta_gain/dmin)*max_angle + ref_theta_gain*ref_angle )/(gap_theta_gain/dmin + ref_theta_gain);
 
 
+
+        // speed control
+        float speed;
+        if( fabs(controlled_angle) > (PI/2)){
+            speed = speed_min;
+        } else {
+            speed = (float)(-(2/PI)*(speed_max-speed_min)*fabs(controlled_angle) + speed_max);
+            speed = speed_max;
+        }
+
+
+        // publish ackermann message
+        pub_ack_msg.drive.steering_angle = controlled_angle;
+        pub_ack_msg.drive.steering_angle_velocity = 0;
+        pub_ack_msg.drive.speed = speed;
+        pub_ack_msg.drive.acceleration = 0;
+        pub_ack_msg.drive.jerk = 0;
+
+        pub_ack.publish(pub_ack_msg);
+
+        ROS_INFO("dmin : %f", dmin);
+        ROS_INFO("ref_angle : %f, gap_angle : %f", ref_angle, max_angle);
+        ROS_INFO("speed: %f,  angle: %f", speed, controlled_angle);
+
+
+        scan_filter_test.ranges.clear();
+        for(i=0; i<scan_range_size; i++) {
+            if( i > goal.start_idx && i < goal.end_idx)
+            {
+                scan_filter_test.ranges.push_back(scan_filtered[i]);
+            } else {
+                scan_filter_test.ranges.push_back(0);
+            }
+        }
+        pub_scan_filtered.publish(scan_filter_test);
 
     } // finish drive function
 
@@ -249,16 +321,22 @@ namespace fgm{
         float steering_angle;
         float max_angle = (goal.max_idx - range_mid_idx)*scan_angle_increment;
         float mid_angle = ((goal.start_idx + goal.end_idx)/2 - range_mid_idx)*scan_angle_increment;
-        float speed = speed_max;
 
         float distance = 1.5;
         float path_radius = distance / (2 * sin(max_angle));
         steering_angle = atan(RACECAR_LENGTH/path_radius);
         
+        float speed;
+        if( fabs(max_angle) > (PI/2)){
+            speed = speed_min;
+        } else {
+            speed = (float)(-(2/PI)*(speed_max-speed_min)*fabs(max_angle) + speed_max);
+            speed = speed_max;
+        }
 
         pub_ack_msg.drive.steering_angle = steering_angle;
         pub_ack_msg.drive.steering_angle_velocity = 0;
-        pub_ack_msg.drive.speed = speed_min;
+        pub_ack_msg.drive.speed = speed;
         pub_ack_msg.drive.acceleration = 0;
         pub_ack_msg.drive.jerk = 0;
 

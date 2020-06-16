@@ -6,6 +6,7 @@
 #include "nav_msgs/Odometry.h"
 #include "sensor_msgs/LaserScan.h"
 #include "sensor_msgs/MultiEchoLaserScan.h"
+#include "visualization_msgs/Marker.h"
 
 #include "msde_fgm/util_msde.h"
 
@@ -58,6 +59,7 @@ namespace fgm
         // driving
         float speed_max;
         float speed_min;
+        float speed_coef;
         float gap_theta_gain;
         float ref_theta_gain;
 
@@ -89,6 +91,10 @@ namespace fgm
         // position of robot
         util_msde::Point_xy current_position;
         int current_rp_idx;
+
+
+        visualization_msgs::Marker Dp_Marker;
+        ros::Publisher pub_dp_mark;
 
 
     public:
