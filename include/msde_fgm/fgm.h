@@ -58,6 +58,8 @@ namespace fgm
         // driving
         float speed_max;
         float speed_min;
+        float gap_theta_gain;
+        float ref_theta_gain;
 
 
         // Lidar data
@@ -94,6 +96,7 @@ namespace fgm
         ~FGM();
         void start_driving();
         void drive_test(Gap goal);
+        void drive_with_ref(Gap goal);
         // reference points control
         void get_reference_point();
         void find_desired_rp();

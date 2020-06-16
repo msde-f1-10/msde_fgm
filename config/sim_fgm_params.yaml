@@ -18,3 +18,5 @@ driving:
   threshold: 4.0
   gap_size: 4
   filter_scale: 1.1
+  gap_theta_gain: 2.0
+  ref_theta_gain: 1.0

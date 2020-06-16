@@ -52,6 +52,11 @@ namespace fgm{
         nh_c.getParam("/msde_driving/driving/speed_max", speed_max);
         nh_c.getParam("/msde_driving/driving/speed_min", speed_min);
 
+        // get parameter for theta selection gain values
+        nh_c.getParam("/msde_driving/driving/gap_theta_gain", gap_theta_gain);
+        nh_c.getParam("/msde_driving/driving/ref_theta_gain", ref_theta_gain);
+        
+
 
         sub_init_scan = nh_c.subscribe(scan_topic_name, 1, &FGM::sub_initLidarData, this);
         // subscriber and publisher init
@@ -71,8 +76,6 @@ namespace fgm{
         pub_ack_msg.drive.jerk = 0;
         pub_ack_msg.drive.steering_angle = 0;
         pub_ack_msg.drive.steering_angle_velocity = 0;
-
-
 
     }
 
@@ -184,7 +187,8 @@ namespace fgm{
             //test
             Gap goal_gap = gap_obj.get_nearest_gap(ref_point_rt);
 //            Gap goal_gap = gap_obj.get_maximum_gap();
-            drive_test(goal_gap);
+//            drive_test(goal_gap);
+            drive_with_ref(goa_gap);
 
             std::cout<<std::endl;
             //std::system("clear");
@@ -192,21 +196,67 @@ namespace fgm{
         }
     }
 
+    void FGM::drive_with_ref(Gap goal)
+    {
+        // steering angle calculation
+        float steering_angle;
+        float max_angle = (goal.max_idx - range_mid_idx)*scan_angle_increment;
+        float ref_angle = ref_point_rt.theta;
+        
+        // get range data in ref_direction
+        int step = (int)(ref_angle/scan_angle_increment);
+        int ref_idx = range_mid_idx + step;
+        // 5degree range selection
+        int range = (int)((PI/36)/scan_angle_increment);
+        int st_idx, en_idx;
+        if( (ref_idx + range/2) < 0 )
+        {
+            st_idx = 0;
+            en_idx = 5;
+        }
+        else if( (ref_idx - range/2) >= scan_range_size )
+        {
+            st_idx = scan_range_size - 6;
+            en_idx = scan_range_size - 1;
+        }
+        else if( (ref_idx - range/2) < 0 )
+        {
+            st_idx = 0;
+            en_idx = (int)(ref_idx + range/2);
+        }
+        else if( (ref_idx + range/2) >= scan_range_size )
+        {
+            st_idx = (int)(ref_id - range/2);
+            en_idx = scan_range_size - 1;
+        }
+        else
+        {
+            st_idx = (int)(ref_id - range/2);
+            en_idx = (int)(ref_idx + range/2);
+        }
 
+
+
+
+    } // finish drive function
+
+
+
+
+    // drive test without reference point
     void FGM::drive_test(Gap goal)
     {
         float steering_angle;
-        float angle = (goal.max_idx - range_mid_idx)*scan_angle_increment;
+        float max_angle = (goal.max_idx - range_mid_idx)*scan_angle_increment;
         float mid_angle = ((goal.start_idx + goal.end_idx)/2 - range_mid_idx)*scan_angle_increment;
         float speed = speed_max;
 
-        float distance = 1;
-        float path_radius = distance / (2 * sin(angle));
+        float distance = 1.5;
+        float path_radius = distance / (2 * sin(max_angle));
         steering_angle = atan(RACECAR_LENGTH/path_radius);
         
 
-
-        pub_ack_msg.drive.steering_angle = 0.9*ref_point_rt.theta + 0.1*angle;
+        pub_ack_msg.drive.steering_angle = steering_angle;
         pub_ack_msg.drive.steering_angle_velocity = 0;
         pub_ack_msg.drive.speed = speed_min;
         pub_ack_msg.drive.acceleration = 0;
@@ -346,6 +396,14 @@ namespace fgm{
         scan_filter_test.scan_time = msg_sub -> scan_time;
         scan_filter_test.range_min = msg_sub -> range_min;
         scan_filter_test.range_max = msg_sub -> range_max;
+        /*
+        int i;
+        scan_filter_test.ranges.clear();
+        for(i=0; i<scan_range_size; i++) {
+            scan_filter_test.ranges.push_back(scan_filtered[i]);
+        }
+        pub_scan_filtered.publish(scan_filter_test);
+        */
 
     }
 
