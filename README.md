@@ -1,5 +1,10 @@
-#MSDE f1tenth FGM package
+MSDE f1tenth Obstacle Passing
 ---
-MSDE f1tenth team follow the gap method package
- - follow the gap for obstacle passing
- - use waypoint as reference point (not follow directly)
+####run driving node
+
+1. Time Trial & Qualification (single driving)
+```bash
+$ roslaunch msde_fgm sim_msde_driving.launch
+```
+
+2. Head-to-Head racing
