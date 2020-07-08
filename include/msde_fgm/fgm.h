@@ -2,6 +2,7 @@
 #define __HEADER_fgm_
 
 #include "ros/ros.h"
+#include "ros/package.h"
 #include "ackermann_msgs/AckermannDriveStamped.h"
 #include "nav_msgs/Odometry.h"
 #include "sensor_msgs/LaserScan.h"
@@ -81,6 +82,8 @@ namespace fgm
         std::fstream fs;
         std::string str_buf;
         std::string path_temp;
+        std::string path_pack;
+        std::string path;
         char* filepath;
         util_msde::Point_xy* rf_points;
         util_msde::Point_xy reference_point;

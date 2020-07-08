@@ -34,9 +34,11 @@ namespace fgm{
 
         // get reference point
         nh_c.getParam("/msde_driving/reference_point/filepath", path_temp);
+        path_pack = ros::package::getPath("msde_fgm");
+        path = path_pack + path_temp;
         nh_c.getParam("/msde_driving/reference_point/distance", rf_distance);
-        filepath = new char[ path_temp.length()+1 ];
-        strcpy(filepath, path_temp.c_str());
+        filepath = new char[ path.length()+1 ];
+        strcpy(filepath, path.c_str());
         get_reference_point();
 
         // get parameters for name of topics
@@ -233,8 +235,8 @@ namespace fgm{
         // get range data in ref_direction
         int step = (int)(ref_angle/scan_angle_increment);
         int ref_idx = range_mid_idx + step;
-        // 10degree range selection
-        int range = (int)((PI/18)/scan_angle_increment);
+        // 10degree range selection : 18
+        int range = (int)((PI/15)/scan_angle_increment);
         int st_idx, en_idx;
         if( (ref_idx + range/2) < 0 )
         {
@@ -272,21 +274,25 @@ namespace fgm{
         dmin = range_sum / (en_idx-st_idx+1);
 
         float controlled_angle = ( (gap_theta_gain/dmin)*max_angle + ref_theta_gain*ref_angle )/(gap_theta_gain/dmin + ref_theta_gain);
-
+        float distance = 1.2;
+        float path_radius = distance / (2 * sin(controlled_angle));
+        steering_angle = (float)atan(RACECAR_LENGTH/path_radius);
+        
 
 
         // speed control
         float speed;
-        if( fabs(controlled_angle) > (PI/2)){
+        if( fabs(steering_angle) > (PI/3)){
             speed = speed_min;
         } else {
-            speed = (float)(-(2/PI)*(speed_max-speed_min)*fabs(controlled_angle) + speed_max);
-            speed = speed_max;
+            speed = (float)(-(3/PI)*(speed_max-speed_min)*fabs(max_angle) + speed_max);
+            speed = fabs(speed);
+            // speed = speed_max;
         }
 
 
         // publish ackermann message
-        pub_ack_msg.drive.steering_angle = controlled_angle;
+        pub_ack_msg.drive.steering_angle = steering_angle;
         pub_ack_msg.drive.steering_angle_velocity = 0;
         pub_ack_msg.drive.speed = speed;
         pub_ack_msg.drive.acceleration = 0;
@@ -298,7 +304,7 @@ namespace fgm{
         ROS_INFO("ref_angle : %f, gap_angle : %f", ref_angle, max_angle);
         ROS_INFO("speed: %f,  angle: %f", speed, controlled_angle);
 
-
+        /*
         scan_filter_test.ranges.clear();
         for(i=0; i<scan_range_size; i++) {
             if( i > goal.start_idx && i < goal.end_idx)
@@ -309,6 +315,7 @@ namespace fgm{
             }
         }
         pub_scan_filtered.publish(scan_filter_test);
+        */
 
     } // finish drive function
 
@@ -320,9 +327,9 @@ namespace fgm{
     {
         float steering_angle;
         float max_angle = (goal.max_idx - range_mid_idx)*scan_angle_increment;
-        float mid_angle = ((goal.start_idx + goal.end_idx)/2 - range_mid_idx)*scan_angle_increment;
+        // float mid_angle = ((goal.start_idx + goal.end_idx)/2 - range_mid_idx)*scan_angle_increment;
 
-        float distance = 1.5;
+        float distance = 1.0;
         float path_radius = distance / (2 * sin(max_angle));
         steering_angle = atan(RACECAR_LENGTH/path_radius);
         
@@ -331,13 +338,13 @@ namespace fgm{
             speed = speed_min;
         } else {
             speed = (float)(-(2/PI)*(speed_max-speed_min)*fabs(max_angle) + speed_max);
-            speed = speed_max;
+            //speed = speed_max;
         }
 
         pub_ack_msg.drive.steering_angle = steering_angle;
         pub_ack_msg.drive.steering_angle_velocity = 0;
         pub_ack_msg.drive.speed = speed;
-        pub_ack_msg.drive.acceleration = 0;
+        pub_ack_msg.drive.acceleration = 8;
         pub_ack_msg.drive.jerk = 0;
 
         ROS_INFO("speed: %f,  angle: %f", speed, steering_angle);

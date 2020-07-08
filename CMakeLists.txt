@@ -10,6 +10,7 @@ project(msde_fgm)
 find_package(catkin REQUIRED COMPONENTS
   ackermann_msgs
   roscpp
+  roslib
   sensor_msgs
   std_msgs
 )
