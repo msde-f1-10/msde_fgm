@@ -310,12 +310,12 @@ namespace fgm{
 
         // speed control
         float speed;
-        if( fabs(steering_angle) > (PI/3)){
+        float abs_angle = fabs(steering_angle);
+        if( abs_angle > (PI/4)){
             speed = speed_min;
         } else {
-            speed = (float)(-(3/PI)*(speed_max-speed_min)*fabs(max_angle) + speed_max);
-            speed = fabs(speed);
-            // speed = speed_max;
+            speed = -1*(4/PI)*(speed_max - speed_min)*abs_angle + speed_max;
+//            speed = speed_max;
         }
 
 
