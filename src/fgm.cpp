@@ -28,7 +28,7 @@ namespace fgm{
 
 
     FGM::FGM(const ros::NodeHandle h)
-    :nh_c(h), loop_rate(100), current_rp_idx(0)
+    :nh_c(h), loop_rate(200), current_rp_idx(0)
     {
         ROS_INFO("start fgm node");
 
@@ -196,6 +196,8 @@ namespace fgm{
     {
         ROS_INFO("start driving");
         GAP gap_obj;
+
+        ros::Duration(10.0).sleep();
 
         while(ros::ok())
         {
@@ -413,6 +415,22 @@ namespace fgm{
 
     void FGM::subCallback_scan(const sensor_msgs::LaserScan::ConstPtr& msg_sub)
     {
+
+        if(scan_range_size == 0)
+        {
+            ROS_INFO("GET THE LIDAR DESCRIPTION");
+            scan_angle_min = msg_sub -> angle_min;
+            scan_angle_max = msg_sub -> angle_max;
+            scan_angle_increment = msg_sub -> angle_increment;
+            scan_range_size = msg_sub -> ranges.size();
+            range_mid_idx = (int)(scan_range_size/2);
+
+            // allocate the scan data array
+            scan_origin = new float[ scan_range_size ];
+            scan_filtered = new float[ scan_range_size ];
+        }
+
+
         int i;
         for(i=0; i<scan_range_size; i++){
             scan_origin[i] = msg_sub -> ranges[i];
