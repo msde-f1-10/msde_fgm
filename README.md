@@ -1,8 +1,10 @@
 MSDE f1tenth Obstacle Passing
 ---
-####run driving node
+##run driving node
 
-1. Time Trial & Qualification (single driving)
+robot will start driving after (around) 5 seconds
+
+1. Qualifying run command - roslaunch (single driving)
 ```bash
 $ roslaunch msde_fgm sim_msde_driving.launch
 ```
