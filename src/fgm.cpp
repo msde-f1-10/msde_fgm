@@ -69,7 +69,7 @@ namespace fgm{
 
         // test publisher
         pub_scan_filtered = nh_c.advertise<sensor_msgs::LaserScan>("laserscan_gap", 1);
-//        pub_dp_mark = nh_c.advertise<visualization_msgs::Marker>("/desired_point/marker", 0);
+        pub_dp_mark = nh_c.advertise<visualization_msgs::Marker>("/desired_point/marker", 1);
 
 
         // Ackermann Driving message init
