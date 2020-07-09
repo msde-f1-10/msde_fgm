@@ -197,13 +197,13 @@ namespace fgm{
         ROS_INFO("start driving");
         GAP gap_obj;
 
-//        ros::Duration(5.0).sleep();
-        ros::Duration five_seconds = ros::Duration(5.0);
+        ros::Duration(5.0).sleep();
+//        ros::Duration five_seconds = ros::Duration(5.0);
 
         while(ros::ok())
         {
             ros::spinOnce();
-            ros::topic::waitForMessage<sensor_msgs::LaserScan>(scan_topic_name);
+//            ros::topic::waitForMessage<sensor_msgs::LaserScan>(scan_topic_name);
             if(scan_range_size == 0) continue;
             // init ackermann message header
 //            pub_ack_msg.header.stamp = ros::Time::now();

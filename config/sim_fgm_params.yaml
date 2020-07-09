@@ -1,8 +1,8 @@
 # reference points
 reference_point:
-  filepath_1: /wps/berlin_5.csv
+  filepath_1: /wps/berlin_1.csv
   filepath_2: /wps/berlin_5.csv
-  distance: 2.5
+  distance: 2.3
 
 # name of topic to subscribe and publish
 topic:
@@ -14,10 +14,10 @@ topic:
 # configuration values for driving algorithm
 driving:
   speed_max: 5.0
-  speed_min: 2.0
-  robot_scale: 0.35
+  speed_min: 1.5
+  robot_scale: 0.3
   threshold: 2.3
   gap_size: 1
   filter_scale: 1.1
-  gap_theta_gain: 20.0
+  gap_theta_gain: 25.0
   ref_theta_gain: 1.0
