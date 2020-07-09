@@ -81,10 +81,10 @@ namespace fgm
         // reference point
         std::fstream fs;
         std::string str_buf;
-        std::string path_temp;
         std::string path_pack;
-        std::string path;
-        char* filepath;
+        std::string path_temp_1;
+        std::string path_1;
+        char* filepath_1;
         util_msde::Point_xy* rf_points;
         util_msde::Point_xy reference_point;
         util_msde::Point_rt ref_point_rt;

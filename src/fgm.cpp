@@ -33,12 +33,12 @@ namespace fgm{
         ROS_INFO("start fgm node");
 
         // get reference point
-        nh_c.getParam("/msde_driving/reference_point/filepath", path_temp);
+        nh_c.getParam("/msde_driving/reference_point/filepath_1", path_temp_1);
         path_pack = ros::package::getPath("msde_fgm");
-        path = path_pack + path_temp;
+        path_1 = path_pack + path_temp_1;
         nh_c.getParam("/msde_driving/reference_point/distance", rf_distance);
-        filepath = new char[ path.length()+1 ];
-        strcpy(filepath, path.c_str());
+        filepath_1 = new char[ path_1.length()+1 ];
+        strcpy(filepath_1, path_1.c_str());
         get_reference_point();
 
         // get parameters for name of topics
@@ -87,7 +87,7 @@ namespace fgm{
     {
         delete []scan_origin;
         delete []scan_filtered;
-        delete []filepath;
+        delete []filepath_1;
         delete []rf_points;
     }
 
@@ -96,7 +96,7 @@ namespace fgm{
         ROS_INFO("get reference point");
         rf_num = 0;
 
-        fs.open(filepath, std::ios::in);
+        fs.open(filepath_1, std::ios::in);
         ROS_INFO("file opened");
         while(!fs.eof())
         {
@@ -109,7 +109,7 @@ namespace fgm{
 
         rf_points = new util_msde::Point_xy[rf_num];
 
-        fs.open(filepath, std::ios::in);
+        fs.open(filepath_1, std::ios::in);
         ROS_INFO("open file");
         util_msde::Point_xy point_temp;
 
@@ -235,6 +235,7 @@ namespace fgm{
         // get range data in ref_direction
         int step = (int)(ref_angle/scan_angle_increment);
         int ref_idx = range_mid_idx + step;
+        /*
         // 10degree range selection : 18
         int range = (int)((PI/15)/scan_angle_increment);
         int st_idx, en_idx;
@@ -272,9 +273,36 @@ namespace fgm{
             range_sum += scan_filtered[i];
         }
         dmin = range_sum / (en_idx-st_idx+1);
+        */
+
+        float range_min_values[10];
+        float temp_avg=0;
+        float dmin = 0;
+        int i, j;
+        for(i=0; i<10; i++)
+        {
+            dmin += scan_filtered[i];
+        }
+        dmin /= 10;
+        for(i=0; i<scan_range_size-7; i+=3)
+        {
+            for(j=0; j<10; j++)
+            {
+                temp_avg += scan_filtered[i+j];
+            }
+            temp_avg /= 10;
+            if(dmin > temp_avg) {
+                dmin = temp_avg;
+            }
+            temp_avg = 0;
+        }
+
+
+
+
 
         float controlled_angle = ( (gap_theta_gain/dmin)*max_angle + ref_theta_gain*ref_angle )/(gap_theta_gain/dmin + ref_theta_gain);
-        float distance = 1.2;
+        float distance = 1.0;
         float path_radius = distance / (2 * sin(controlled_angle));
         steering_angle = (float)atan(RACECAR_LENGTH/path_radius);
         
