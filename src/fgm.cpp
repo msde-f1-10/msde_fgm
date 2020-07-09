@@ -321,10 +321,10 @@ namespace fgm{
 
         // publish ackermann message
         pub_ack_msg.drive.steering_angle = steering_angle;
-        pub_ack_msg.drive.steering_angle_velocity = 0;
+        pub_ack_msg.drive.steering_angle_velocity = 8;
         pub_ack_msg.drive.speed = speed;
-        pub_ack_msg.drive.acceleration = 0;
-        pub_ack_msg.drive.jerk = 0;
+        pub_ack_msg.drive.acceleration = 8;
+        pub_ack_msg.drive.jerk = 8;
 
         pub_ack.publish(pub_ack_msg);
 
@@ -531,7 +531,7 @@ namespace fgm{
     // GAP class
     GAP::GAP()
     {
-        this->gaps.reserve(10);
+        this->gaps.reserve(20);
 
         float theta_for = PI/3;
         int for_point = (int)(theta_for/scan_angle_increment);
@@ -716,6 +716,7 @@ namespace fgm{
                 }
                 i++;
             }
+            this->print_gapinfo();
             return this->gaps[gap_idx];
         }
     }// end get nearest gap
