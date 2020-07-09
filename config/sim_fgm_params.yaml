@@ -16,7 +16,7 @@ driving:
   speed_max: 5.0
   speed_min: 2.0
   robot_scale: 0.35
-  threshold: 2.5
+  threshold: 2.3
   gap_size: 1
   filter_scale: 1.1
   gap_theta_gain: 20.0
