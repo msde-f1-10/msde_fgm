@@ -28,7 +28,7 @@ namespace fgm{
 
 
     FGM::FGM(const ros::NodeHandle h)
-    :nh_c(h), loop_rate(200), current_rp_idx(0)
+    :nh_c(h), loop_rate(250), current_rp_idx(0)
     {
         ROS_INFO("start fgm node");
 
