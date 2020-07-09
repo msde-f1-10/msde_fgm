@@ -63,9 +63,9 @@ namespace fgm{
 
         sub_init_scan = nh_c.subscribe(scan_topic_name, 1, &FGM::sub_initLidarData, this);
         // subscriber and publisher init
-        sub_scan = nh_c.subscribe(scan_topic_name, 10, &FGM::subCallback_scan, this);
-        sub_odom = nh_c.subscribe(odom_topic_name, 10, &FGM::subCallback_odom, this);
-        pub_ack = nh_c.advertise<ackermann_msgs::AckermannDriveStamped>(drive_topic_name, 5);
+        sub_scan = nh_c.subscribe(scan_topic_name, 1, &FGM::subCallback_scan, this);
+        sub_odom = nh_c.subscribe(odom_topic_name, 1, &FGM::subCallback_odom, this);
+        pub_ack = nh_c.advertise<ackermann_msgs::AckermannDriveStamped>(drive_topic_name, 1);
 
         // test publisher
         pub_scan_filtered = nh_c.advertise<sensor_msgs::LaserScan>("laserscan_gap", 1);
@@ -74,7 +74,7 @@ namespace fgm{
 
         // Ackermann Driving message init
         pub_ack_msg.header.stamp = ros::Time::now();
-        pub_ack_msg.header.frame_id = "/ego_racecar/base_link";
+        pub_ack_msg.header.frame_id = "ego_racecar/base_link";
         pub_ack_msg.drive.speed = 0;
         pub_ack_msg.drive.acceleration = 0;
         pub_ack_msg.drive.jerk = 0;
@@ -197,7 +197,7 @@ namespace fgm{
         ROS_INFO("start driving");
         GAP gap_obj;
 
-        ros::Duration(10.0).sleep();
+        ros::Duration(5.0).sleep();
 
         while(ros::ok())
         {
@@ -323,7 +323,7 @@ namespace fgm{
 
         // publish ackermann message
         pub_ack_msg.header.stamp = ros::Time::now();
-        pub_ack_msg.header.frame_id = "/ego_racecar/base_link";
+        pub_ack_msg.header.frame_id = "ego_racecar/base_link";
         pub_ack_msg.drive.steering_angle = steering_angle;
         pub_ack_msg.drive.steering_angle_velocity = 8;
         pub_ack_msg.drive.speed = speed;
