@@ -315,7 +315,7 @@ namespace fgm{
             speed = speed_min;
         } else {
             speed = -1*(4/PI)*(speed_max - speed_min)*abs_angle + speed_max;
-            speed = speed_max;
+//            speed = speed_max;
         }
 
 
