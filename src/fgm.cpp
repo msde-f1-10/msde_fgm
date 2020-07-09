@@ -28,7 +28,7 @@ namespace fgm{
 
 
     FGM::FGM(const ros::NodeHandle h)
-    :nh_c(h), loop_rate(250), current_rp_idx(0)
+    :nh_c(h), loop_rate(100), current_rp_idx(0)
     {
         ROS_INFO("start fgm node");
 
@@ -74,7 +74,7 @@ namespace fgm{
 
         // Ackermann Driving message init
         pub_ack_msg.header.stamp = ros::Time::now();
-        pub_ack_msg.header.frame_id = "base_link";
+        pub_ack_msg.header.frame_id = "/ego_racecar/base_link";
         pub_ack_msg.drive.speed = 0;
         pub_ack_msg.drive.acceleration = 0;
         pub_ack_msg.drive.jerk = 0;
@@ -202,8 +202,8 @@ namespace fgm{
             ros::spinOnce();
             if(scan_range_size == 0) continue;
             // init ackermann message header
-            pub_ack_msg.header.stamp = ros::Time::now();
-            pub_ack_msg.header.frame_id = "base_link";
+//            pub_ack_msg.header.stamp = ros::Time::now();
+//            pub_ack_msg.header.frame_id = "base_link";
 
             //find gap
             gap_obj.gap_finding(scan_filtered);
@@ -320,6 +320,8 @@ namespace fgm{
 
 
         // publish ackermann message
+        pub_ack_msg.header.stamp = ros::Time::now();
+        pub_ack_msg.header.frame_id = "/ego_racecar/base_link";
         pub_ack_msg.drive.steering_angle = steering_angle;
         pub_ack_msg.drive.steering_angle_velocity = 8;
         pub_ack_msg.drive.speed = speed;
@@ -716,7 +718,7 @@ namespace fgm{
                 }
                 i++;
             }
-            this->print_gapinfo();
+//            this->print_gapinfo();
             return this->gaps[gap_idx];
         }
     }// end get nearest gap

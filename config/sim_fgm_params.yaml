@@ -13,7 +13,7 @@ topic:
 
 # configuration values for driving algorithm
 driving:
-  speed_max: 4.0
+  speed_max: 5.0
   speed_min: 2.0
   robot_scale: 0.35
   threshold: 2.3

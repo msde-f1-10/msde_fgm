@@ -15,6 +15,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <time.h>
 
 #define PI 3.141592
 #define RACECAR_LENGTH 0.325
