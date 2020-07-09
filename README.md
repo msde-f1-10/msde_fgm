@@ -1,8 +1,13 @@
 MSDE f1tenth Obstacle Passing
 ---
-##run driving node
 
 robot will start driving after (around) 5 seconds
+
+### tested environment
+Ubuntu 18.04
+ROS Melodic
+
+### run command
 
 1. Qualifying run command - roslaunch (single driving)
 ```bash
