@@ -27,7 +27,7 @@ $ roslaunch msde_fgm sim_msde_driving.launch
 * nav : ```/msde_race/drive```
    
    
-2. run command (without gym_pridbe_host.launch)
+2. run command (without gym_bridge_host.launch)
 ```bash
 $ roslaunch msde_fgm sim_grand_prix_driving.launch
 ```
