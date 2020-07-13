@@ -10,7 +10,7 @@
         <rosparam command="load" file="$(find pure_pursuit)/config/pure_pursuit_param.yaml" />
         <remap from="/vesc/high_level/ackermann_cmd_mux/input/nav_1" to="/opp_drive" />
         <remap from="/pf/pose/odom" to="/opp_odom" />
-	<remap from="/scan" to="/opp_scan" />
+        <remap from="/scan" to="/opp_scan" />
     </node>
 
 

@@ -28,7 +28,7 @@ namespace fgm{
 
 
     FGM::FGM(const ros::NodeHandle h)
-    :nh_c(h), loop_rate(200), current_rp_idx(0)
+    :nh_c(h), loop_rate(50), current_rp_idx(0)
     {
         ROS_INFO("start fgm node");
 
@@ -314,11 +314,13 @@ namespace fgm{
 
         // speed control
         double speed;
+        double g = -3.5;
         float abs_angle = fabs(steering_angle);
         if( abs_angle > (PI/4)){
             speed = speed_min;
         } else {
-            speed = -1*(4/PI)*(speed_max - speed_min)*abs_angle + speed_max;
+            speed = (speed_max-speed_min)*exp(g*abs_angle)+speed_min;
+//            speed = -1*(4/PI)*(speed_max - speed_min)*abs_angle + speed_max;
 //            speed = speed_max;
         }
 
